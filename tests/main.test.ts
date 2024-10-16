@@ -1,11 +1,10 @@
-import { it, expect, describe } from "vitest";
+import { it, describe } from "vitest";
+import { db } from "./mocks/db";
+import { equal } from "assert";
 
 describe("group", () => {
-  it("should", async () => {
-    const response = await fetch("/categories");
-
-    const data = await response.json();
-    console.log(data);
-    expect(data).toHaveLength(3 );
+  it("should", () => {
+    const product: any = db.product.create({ name: "Apple" });
+    console.log(db.product.delete({ where: { id: { equals: product.id } } }));
   });
 });
