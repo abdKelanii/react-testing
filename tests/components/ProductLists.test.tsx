@@ -14,7 +14,6 @@ describe("ProductLists", () => {
     server.use(http.get("/products", () => HttpResponse.json([])));
     render(<ProductList />);
 
-    
     const message = await screen.findByText(/no products/i);
     expect(message).toBeInTheDocument();
   });
