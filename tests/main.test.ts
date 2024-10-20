@@ -1,6 +1,5 @@
 import { it, describe } from "vitest";
 import { db } from "./mocks/db";
-import { equal } from "assert";
 
 describe("group", () => {
   it("should", () => {
