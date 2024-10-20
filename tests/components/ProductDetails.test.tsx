@@ -81,4 +81,5 @@ describe("ProductDetails", () => {
 
     await waitForElementToBeRemoved(() => screen.queryByText(/loading/i));
   });
+  
 });
