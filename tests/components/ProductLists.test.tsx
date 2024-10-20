@@ -1,8 +1,12 @@
-import { render, screen } from "@testing-library/react";
+import {
+  render,
+  screen,
+  waitForElementToBeRemoved,
+} from "@testing-library/react";
+import { delay, http, HttpResponse } from "msw";
 import ProductList from "../../src/components/ProductList";
-import { server } from "../mocks/server";
-import { http, HttpResponse } from "msw";
 import { db } from "../mocks/db";
+import { server } from "../mocks/server";
 
 describe("ProductLists", () => {
   const productsIds: number[] = [];
@@ -39,5 +43,31 @@ describe("ProductLists", () => {
     const errorMessage = await screen.findByText(/error/i);
 
     expect(errorMessage).toBeInTheDocument();
+  });
+
+  it("should render loading indicator if data is fetching", () => {
+    server.use(
+      http.get("/products", async () => {
+        await delay();
+        return HttpResponse.json([]);
+      })
+    );
+    render(<ProductList />);
+
+    const loading = screen.getByText(/loading/i);
+    expect(loading).toBeInTheDocument();
+  });
+
+  it("should remove the loading indicator when the data is fetched", async () => {
+    render(<ProductList />);
+
+    await waitForElementToBeRemoved(() => screen.queryByText(/loading/i));
+  });
+
+  it("should remove the loading indicator when there is an error", async () => {
+    server.use(http.get("/products", () => HttpResponse.error()));
+    render(<ProductList />);
+
+    await waitForElementToBeRemoved(() => screen.queryByText(/loading/i));
   });
 });
