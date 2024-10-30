@@ -1,4 +1,4 @@
 {
   "port": 3000,
-  "static": "./public/json-servler"
+  "static": "./public/json-server"
 }
