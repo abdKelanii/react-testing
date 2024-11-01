@@ -8,7 +8,7 @@ import userEvent from "@testing-library/user-event";
 import { Category, Product } from "../../src/entities";
 import BrowseProducts from "../../src/pages/BrowseProductsPage";
 import { CartProvider } from "../../src/providers/CartProvider";
-import { db } from "../mocks/db";
+import { db, getProductsByCategory } from "../mocks/db";
 import { simulateDelay, simulateError } from "../utils";
 
 describe("BrowseProductPage", () => {
@@ -33,25 +33,6 @@ describe("BrowseProductPage", () => {
     db.category.deleteMany({ where: { id: { in: categoriesIds } } });
     db.product.deleteMany({ where: { id: { in: productsIds } } });
   });
-
-  const renderComponent = () => {
-    render(
-      <CartProvider>
-        <Theme>
-          <BrowseProducts />
-        </Theme>
-      </CartProvider>
-    );
-
-    return {
-      getProductSkeleton: () =>
-        screen.queryByRole("progressbar", { name: /products/i }),
-      getCategoriesSkeleton: () =>
-        screen.queryByRole("progressbar", { name: /categories/i }),
-
-      getCategoriesCombobox: () => screen.queryByRole("combobox"),
-    };
-  };
 
   it("should show loading skeleton when fetching categories", () => {
     simulateDelay("/categories");
@@ -135,51 +116,69 @@ describe("BrowseProductPage", () => {
   });
 
   it("should filter products by category", async () => {
-    const { getCategoriesSkeleton, getCategoriesCombobox } = renderComponent();
+    const { selectCategory, expectProductsTobeInTheDocument } =
+      renderComponent();
 
-    // Arrange part
-    await waitForElementToBeRemoved(getCategoriesSkeleton);
-    const combobox = getCategoriesCombobox();
-    const user = userEvent.setup();
-    await user.click(combobox!);
-
-    // Act part
     const selectedCategory = categories[0];
-    const option = screen.getByRole("option", { name: selectedCategory.name });
-    await user.click(option);
+    await selectCategory(selectedCategory.name);
 
-    // Assert part
-    const products = db.product.findMany({
-      where: { categoryId: { equals: selectedCategory.id } },
-    });
-    const rows = screen.getAllByRole("row");
-    // +1 for the header row
-    expect(rows).toHaveLength(products.length + 1);
-    products.forEach((product) => {
-      expect(screen.getByText(product.name)).toBeInTheDocument();
-    });
+    const products = getProductsByCategory(selectedCategory.id);
+    expectProductsTobeInTheDocument(products);
   });
 
   it("should render all products if all category is selected", async () => {
-    const { getCategoriesSkeleton, getCategoriesCombobox } = renderComponent();
+    const { selectCategory, expectProductsTobeInTheDocument } =
+      renderComponent();
 
-    // Arrange part
+    await selectCategory(/all/i);
+
+    const products = db.product.getAll();
+    expectProductsTobeInTheDocument(products);
+  });
+});
+
+const renderComponent = () => {
+  render(
+    <CartProvider>
+      <Theme>
+        <BrowseProducts />
+      </Theme>
+    </CartProvider>
+  );
+
+  const getCategoriesSkeleton = () =>
+    screen.queryByRole("progressbar", { name: /categories/i });
+
+  const getProductSkeleton = () =>
+    screen.queryByRole("progressbar", { name: /products/i });
+
+  const getCategoriesCombobox = () => screen.queryByRole("combobox");
+
+  const selectCategory = async (name: RegExp | string) => {
     await waitForElementToBeRemoved(getCategoriesSkeleton);
     const combobox = getCategoriesCombobox();
     const user = userEvent.setup();
     await user.click(combobox!);
 
-    // Act part
-    const option = screen.getByRole("option", { name: /all/i });
+    const option = screen.getByRole("option", {
+      name,
+    });
     await user.click(option);
+  };
 
-    // Assert part
-    const products = db.product.getAll();
+  const expectProductsTobeInTheDocument = (products: Product[]) => {
     const rows = screen.getAllByRole("row");
-    // +1 for the header row
     expect(rows).toHaveLength(products.length + 1);
     products.forEach((product) => {
       expect(screen.getByText(product.name)).toBeInTheDocument();
     });
-  });
-});
+  };
+
+  return {
+    getProductSkeleton: getProductSkeleton,
+    getCategoriesSkeleton: getCategoriesSkeleton,
+    getCategoriesCombobox: getCategoriesCombobox,
+    selectCategory: selectCategory,
+    expectProductsTobeInTheDocument: expectProductsTobeInTheDocument,
+  };
+};
