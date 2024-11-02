@@ -30,46 +30,46 @@ describe("ProductLists", () => {
   });
 
   
-  // it("should render no products availabe if there is no products", async () => {
-  //   server.use(http.get("/products", () => HttpResponse.json([])));
-  //   render(<ProductList />, { wrapper: AllProviders });
+  it("should render no products availabe if there is no products", async () => {
+    server.use(http.get("/products", () => HttpResponse.json([])));
+    render(<ProductList />, { wrapper: AllProviders });
 
-  //   const message = await screen.findByText(/no products/i);
-  //   expect(message).toBeInTheDocument();
-  // });
+    const message = await screen.findByText(/no products/i);
+    expect(message).toBeInTheDocument();
+  });
 
-  // it("should render an error message when there is an error", async () => {
-  //   server.use(http.get("/products", () => HttpResponse.error()));
-  //   render(<ProductList />, { wrapper: AllProviders });
+  it("should render an error message when there is an error", async () => {
+    server.use(http.get("/products", () => HttpResponse.error()));
+    render(<ProductList />, { wrapper: AllProviders });
 
-  //   const errorMessage = await screen.findByText(/error/i);
+    const errorMessage = await screen.findByText(/error/i);
 
-  //   expect(errorMessage).toBeInTheDocument();
-  // });
+    expect(errorMessage).toBeInTheDocument();
+  });
 
-  // it("should render loading indicator if data is fetching", () => {
-  //   server.use(
-  //     http.get("/products", async () => {
-  //       await delay();
-  //       return HttpResponse.json([]);
-  //     })
-  //   );
-  //   render(<ProductList />, { wrapper: AllProviders });
+  it("should render loading indicator if data is fetching", () => {
+    server.use(
+      http.get("/products", async () => {
+        await delay();
+        return HttpResponse.json([]);
+      })
+    );
+    render(<ProductList />, { wrapper: AllProviders });
 
-  //   const loading = screen.getByText(/loading/i);
-  //   expect(loading).toBeInTheDocument();
-  // });
+    const loading = screen.getByText(/loading/i);
+    expect(loading).toBeInTheDocument();
+  });
 
-  // it("should remove the loading indicator when the data is fetched", async () => {
-  //   render(<ProductList />, { wrapper: AllProviders });
+  it("should remove the loading indicator when the data is fetched", async () => {
+    render(<ProductList />, { wrapper: AllProviders });
 
-  //   await waitForElementToBeRemoved(() => screen.queryByText(/loading/i));
-  // });
+    await waitForElementToBeRemoved(() => screen.queryByText(/loading/i));
+  });
 
-  // it("should remove the loading indicator when there is an error", async () => {
-  //   server.use(http.get("/products", () => HttpResponse.error()));
-  //   render(<ProductList />, { wrapper: AllProviders });
+  it("should remove the loading indicator when there is an error", async () => {
+    server.use(http.get("/products", () => HttpResponse.error()));
+    render(<ProductList />, { wrapper: AllProviders });
 
-  //   await waitForElementToBeRemoved(() => screen.queryByText(/loading/i));
-  // });
+    await waitForElementToBeRemoved(() => screen.queryByText(/loading/i));
+  });
 });
