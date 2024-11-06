@@ -4,6 +4,7 @@ import { Category, Product } from "../../src/entities";
 import AllProviders from "../AllProviders";
 import { db } from "../mocks/db";
 import userEvent from "@testing-library/user-event";
+import { error } from "console";
 
 describe("ProductForm", () => {
   let category: Category;
@@ -69,19 +70,33 @@ describe("ProductForm", () => {
     expect(nameInput).toHaveFocus();
   });
 
-  it("should display an error if name is missing", async () => {
-    const { waitForFormToLoad } = renderForm();
-    const form = await waitForFormToLoad();
+  it.each([
+    {
+      scenario: "missing",
+      errorMessage: /required/i,
+    },
+    {
+      scenario: "longer than 255 characters",
+      name: "a".repeat(256),
+      errorMessage: /255/i,
+    },
+  ])(
+    "should display an error if name is $scenario",
+    async ({ name, errorMessage }) => {
+      const { waitForFormToLoad } = renderForm();
+      const form = await waitForFormToLoad();
 
-    const user = userEvent.setup();
-    await user.type(form.priceInput, "10");
-    await user.click(form.categoryInput);
-    const options = screen.getAllByRole("option");
-    await user.click(options[0]);
-    await user.click(form.submitButton);
+      const user = userEvent.setup();
+      if (name !== undefined) await user.type(form.nameInput, name);
+      await user.type(form.priceInput, "10");
+      await user.click(form.categoryInput);
+      const options = screen.getAllByRole("option");
+      await user.click(options[0]);
+      await user.click(form.submitButton);
 
-    const error = screen.getByRole("alert");
-    expect(error).toBeInTheDocument();
-    expect(error).toHaveTextContent(/required/i);
-  });
+      const error = screen.getByRole("alert");
+      expect(error).toBeInTheDocument();
+      expect(error).toHaveTextContent(errorMessage);
+    }
+  );
 });
