@@ -107,7 +107,7 @@ describe("ProductForm", () => {
     expect(nameInput).toHaveFocus();
   });
 
-  it.only.each([
+  it.each([
     {
       scenario: "missing",
       errorMessage: /required/i,
